@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Julam Financial Services</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-image: linear-gradient(135deg, #e0f7fa, #e1bee7);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      transition: all 0.3s ease-in-out;
+    }
+
+    .glass-card:hover {
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .fade-in {
+      animation: fadeIn 1s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .floating-label input:focus + label,
+    .floating-label input:not(:placeholder-shown) + label {
+      transform: translateY(-1.75rem);
+      font-size: 0.75rem;
+      color: #1d4ed8;
+    }
+
+    .floating-label label {
+      position: absolute;
+      top: 50%;
+      left: 1rem;
+      transform: translateY(-50%);
+      transition: all 0.2s ease-in-out;
+      pointer-events: none;
+    }
+
+    .floating-label input {
+      padding-top: 1.25rem;
+      padding-bottom: 0.75rem;
+    }
+
+    .loader-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 50;
+    }
+
+    .luxury-loader {
+        width: 50px;
+        height: 50px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite, glow 2s ease-in-out infinite;
+        box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @keyframes glow {
+        0%, 100% { box-shadow: 0 0 15px rgba(52, 152, 219, 0.5); }
+        50% { box-shadow: 0 0 30px rgba(52, 152, 219, 0.8); }
+    }
+
+    .hidden {
+        display: none !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 fade-in">
+  <div class="glass-card p-10 rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="text-center mb-8">
+      <img src="{{ url_for('static', filename='n.png') }}" alt="Julam Logo" class="h-16 mx-auto mb-4" />
+      <h1 class="text-3xl font-bold text-gray-800" style="font-family: 'Playfair Display', serif;">Julam Financial</h1>
+      <p class="text-gray-600 mt-2">Access your account securely</p>
+    </div>
+
+    <form id="login-form" action="/login" method="POST" class="space-y-6">
+      <div class="relative floating-label">
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          placeholder=" "
+          class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none"
+        />
+        <label for="email">Email Address</label>
+      </div>
+
+      <div class="relative floating-label">
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          placeholder=" "
+          class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none"
+        />
+        <label for="password">Password</label>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <label class="flex items-center text-sm text-gray-600">
+          <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300 mr-2" />
+          Remember me
+        </label>
+        <a href="#" class="text-sm text-blue-600 hover:text-blue-800">Forgot password?</a>
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg shadow-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all"
+      >
+        Sign In
+      </button>
+    </form>
+
+    <!-- Toast -->
+    <div
+      id="toast"
+      class="hidden fixed top-5 right-5 flex items-center p-4 bg-green-500 text-white rounded-lg shadow-lg transition-all duration-300 transform"
+    >
+      <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      <span id="toast-message">Login successful! Redirecting...</span>
+    </div>
+  </div>
+
+  <div id="loader" class="loader-container hidden">
+    <div class="luxury-loader"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('login-form');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+    const loader = document.getElementById('loader');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+
+      // Show loader
+      loader.classList.remove('hidden');
+
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          body: formData,
+        });
+
+        // Minimum loader display time for better UX
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        if (response.ok) {
+          toastMessage.textContent = 'Login successful! Redirecting...';
+          toast.classList.remove('hidden');
+          toast.classList.remove('bg-red-500');
+          toast.classList.add('bg-green-500');
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 2000);
+        } else {
+          toastMessage.textContent = 'Login failed. Please check your credentials.';
+          toast.classList.remove('hidden');
+          toast.classList.remove('bg-green-500');
+          toast.classList.add('bg-red-500');
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        toastMessage.textContent = 'An unexpected error occurred.';
+        toast.classList.remove('hidden');
+        toast.classList.remove('bg-green-500');
+        toast.classList.add('bg-red-500');
+      } finally {
+        // Hide loader
+        loader.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

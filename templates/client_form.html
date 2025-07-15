@@ -1,0 +1,517 @@
+{% extends "base.html" %}
+
+{% block title %}Luxury Client Registration{% endblock %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="mb-4">
+      {% for category, message in messages %}
+        <div class="p-3 rounded mb-2
+          {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'error' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+
+<div class="max-w-6xl mx-auto">
+    <div class="bg-white rounded-xl shadow-xl overflow-hidden mb-8">
+        <!-- Form Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+            <h1 class="text-3xl font-bold">
+                <i class="fas fa-user-plus mr-2"></i>Client Registration
+            </h1>
+            <p class="opacity-90 mt-1">Please fill in all required fields marked with *</p>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="bg-gray-50 px-6 py-4 border-b">
+            <div class="flex justify-between items-center">
+                {% for step in range(1, 8) %}
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center 
+                                {% if step == 1 %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-600{% endif %} 
+                                font-bold mb-1">
+                        {{ step }}
+                    </div>
+                    <span class="text-xs font-medium text-gray-500">
+                        {% if step == 1 %}Personal{% endif %}
+                        {% if step == 2 %}ID{% endif %}
+                        {% if step == 3 %}Family{% endif %}
+                        {% if step == 4 %}Next of Kin{% endif %}
+                        {% if step == 5 %}Education{% endif %}
+                        {% if step == 6 %}Work{% endif %}
+                        {% if step == 7 %}Referral{% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('client.add_client') }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+
+            <!-- Section 1: Personal Information -->
+            <div class="form-section bg-white p-6 rounded-lg border border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center mr-3">1</span>
+                    Personal Information
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="full_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                        <input type="text" id="full_name" name="full_name" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="date_of_birth" class="block text-sm font-medium text-gray-700 mb-1">Date of Birth *</label>
+                        <input type="date" id="date_of_birth" name="date_of_birth" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="marital_status" class="block text-sm font-medium text-gray-700 mb-1">Marital Status *</label>
+                        <select id="marital_status" name="marital_status" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                            <option value="" disabled selected>Select status</option>
+                            <option value="single">Single</option>
+                            <option value="married">Married</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="religion" class="block text-sm font-medium text-gray-700 mb-1">Religion</label>
+                        <input type="text" id="religion" name="religion"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="tribe" class="block text-sm font-medium text-gray-700 mb-1">Tribe</label>
+                        <input type="text" id="tribe" name="tribe"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="district_of_origin" class="block text-sm font-medium text-gray-700 mb-1">District of Origin *</label>
+                        <input type="text" id="district_of_origin" name="district_of_origin" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="number_of_children" class="block text-sm font-medium text-gray-700 mb-1">Number of Children</label>
+                        <input type="number" id="number_of_children" name="number_of_children" min="0" value="0"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="occupation" class="block text-sm font-medium text-gray-700 mb-1">Occupation *</label>
+                        <input type="text" id="occupation" name="occupation" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="medical_history" class="block text-sm font-medium text-gray-700 mb-1">Medical History</label>
+                        <textarea id="medical_history" name="medical_history" rows="3"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Identification -->
+            <div class="form-section bg-white p-6 rounded-lg border border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center mr-3">2</span>
+                    Identification
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="nin_number" class="block text-sm font-medium text-gray-700 mb-1">NIN Number *</label>
+                        <input type="text" id="nin_number" name="nin_number" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="passport_number" class="block text-sm font-medium text-gray-700 mb-1">Passport Number</label>
+                        <input type="text" id="passport_number" name="passport_number"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="primary_phone" class="block text-sm font-medium text-gray-700 mb-1">Primary Phone *</label>
+                        <input type="tel" id="primary_phone" name="primary_phone" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="secondary_phone" class="block text-sm font-medium text-gray-700 mb-1">Secondary Phone</label>
+                        <input type="tel" id="secondary_phone" name="secondary_phone"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="photo" class="block text-sm font-medium text-gray-700 mb-1">Photo (JPEG/PNG)</label>
+                        <div class="flex items-center">
+                            <label class="flex flex-col items-center px-4 py-2 bg-white rounded-lg border border-blue-500 cursor-pointer hover:bg-blue-50 transition">
+                                <i class="fas fa-camera text-blue-500 mb-1"></i>
+                                <span class="text-sm text-blue-600 font-medium">Choose File</span>
+                                <input type="file" id="photo" name="photo" accept="image/jpeg,image/png" class="hidden">
+                            </label>
+                            <span id="photo-filename" class="ml-3 text-sm text-gray-500">No file chosen</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="nin_doc" class="block text-sm font-medium text-gray-700 mb-1">NIN Document (PDF/JPEG/PNG)</label>
+                        <div class="flex items-center">
+                            <label class="flex flex-col items-center px-4 py-2 bg-white rounded-lg border border-blue-500 cursor-pointer hover:bg-blue-50 transition">
+                                <i class="fas fa-file-alt text-blue-500 mb-1"></i>
+                                <span class="text-sm text-blue-600 font-medium">Choose File</span>
+                                <input type="file" id="nin_doc" name="nin_doc" accept=".pdf,.jpg,.jpeg,.png" class="hidden">
+                            </label>
+                            <span id="nin-doc-filename" class="ml-3 text-sm text-gray-500">No file chosen</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Family Information -->
+            <div class="form-section bg-white p-6 rounded-lg border border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center mr-3">3</span>
+                    Family Information
+                </h2>
+                
+                <!-- Father -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-male text-blue-500 mr-2"></i>Father's Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="father_name" class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                            <input type="text" id="father_name" name="father_name" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                        
+                        <div>
+                            <label for="father_alive" class="block text-sm font-medium text-gray-700 mb-1">Alive? *</label>
+                            <select id="father_alive" name="father_alive" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="father_nin" class="block text-sm font-medium text-gray-700 mb-1">NIN</label>
+                            <input type="text" id="father_nin" name="father_nin"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                        
+                        <div>
+                            <label for="father_contact" class="block text-sm font-medium text-gray-700 mb-1">Contact</label>
+                            <input type="tel" id="father_contact" name="father_contact"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="father_address" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                            <input type="text" id="father_address" name="father_address"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mother -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-female text-pink-500 mr-2"></i>Mother's Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="mother_name" class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                            <input type="text" id="mother_name" name="mother_name" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                        
+                        <div>
+                            <label for="mother_alive" class="block text-sm font-medium text-gray-700 mb-1">Alive? *</label>
+                            <select id="mother_alive" name="mother_alive" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="mother_nin" class="block text-sm font-medium text-gray-700 mb-1">NIN</label>
+                            <input type="text" id="mother_nin" name="mother_nin"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                        
+                        <div>
+                            <label for="mother_contact" class="block text-sm font-medium text-gray-700 mb-1">Contact</label>
+                            <input type="tel" id="mother_contact" name="mother_contact"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="mother_address" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                            <input type="text" id="mother_address" name="mother_address"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Next of Kin -->
+            <div class="form-section bg-white p-6 rounded-lg border border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center mr-3">4</span>
+                    Next of Kin
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="nok_name" class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                        <input type="text" id="nok_name" name="nok_name" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="nok_relationship" class="block text-sm font-medium text-gray-700 mb-1">Relationship *</label>
+                        <input type="text" id="nok_relationship" name="nok_relationship" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="nok_contact" class="block text-sm font-medium text-gray-700 mb-1">Contact *</label>
+                        <input type="tel" id="nok_contact" name="nok_contact" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="nok_address" class="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                        <input type="text" id="nok_address" name="nok_address" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Academic History -->
+            <div class="form-section bg-white p-6 rounded-lg border border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center mr-3">5</span>
+                    Academic History
+                </h2>
+                
+                <div id="academics-container" class="space-y-4">
+                    <div class="dynamic-field-group bg-gray-50 p-4 rounded-lg border border-gray-200" data-index="0">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Level *</label>
+                                <input type="text" name="academics[0][level]" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Institution *</label>
+                                <input type="text" name="academics[0][institution]" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Award</label>
+                                <input type="text" name="academics[0][award]"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                                <input type="number" name="academics[0][year]" min="1900" max="2100"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                            </div>
+                        </div>
+                        <button type="button" class="remove-field mt-2 text-sm text-red-600 hover:text-red-800 transition">
+                            <i class="fas fa-trash mr-1"></i>Remove
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="button" id="add-academic" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center">
+                    <i class="fas fa-plus mr-2"></i>Add Another Academic Record
+                </button>
+            </div>
+
+            <!-- Section 6: Work Experience -->
+            <div class="form-section bg-white p-6 rounded-lg border border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center mr-3">6</span>
+                    Work Experience
+                </h2>
+                
+                <div id="work-exps-container" class="space-y-4">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                
+                <button type="button" id="add-work-exp" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center">
+                    <i class="fas fa-plus mr-2"></i>Add Work Experience
+                </button>
+            </div>
+
+            <!-- Section 7: Referral Information -->
+            <div class="form-section bg-white p-6 rounded-lg border border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center mr-3">7</span>
+                    Referral Information
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="referral_source" class="block text-sm font-medium text-gray-700 mb-1">Referral Source</label>
+                        <input type="text" id="referral_source" name="referral_source"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="referral_person" class="block text-sm font-medium text-gray-700 mb-1">Referral Person</label>
+                        <input type="text" id="referral_person" name="referral_person"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Submission -->
+            <div class="flex justify-end">
+                <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition shadow-lg flex items-center">
+                    <i class="fas fa-save mr-2"></i>Submit Registration
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+    window.onload = () => {
+        // Automatically resume registration if interrupted
+        const order_id = localStorage.getItem("order_id");
+        const client_id = localStorage.getItem("client_id");
+
+        if (order_id && client_id) {
+            console.log("Saved order detected, you may resume or verify...");
+            // optionally ping the backend to verify and update
+        }
+    }
+</script>
+
+<script>
+    // File input filename display
+    document.getElementById('photo').addEventListener('change', function(e) {
+        const fileName = e.target.files[0] ? e.target.files[0].name : 'No file chosen';
+        document.getElementById('photo-filename').textContent = fileName;
+    });
+
+    document.getElementById('nin_doc').addEventListener('change', function(e) {
+        const fileName = e.target.files[0] ? e.target.files[0].name : 'No file chosen';
+        document.getElementById('nin-doc-filename').textContent = fileName;
+    });
+
+    // Academic History dynamic fields
+    document.getElementById('add-academic').addEventListener('click', function() {
+        const container = document.getElementById('academics-container');
+        const index = container.children.length;
+        
+        const div = document.createElement('div');
+        div.className = 'dynamic-field-group bg-gray-50 p-4 rounded-lg border border-gray-200';
+        div.dataset.index = index;
+        div.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Level *</label>
+                    <input type="text" name="academics[${index}][level]" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Institution *</label>
+                    <input type="text" name="academics[${index}][institution]" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Award</label>
+                    <input type="text" name="academics[${index}][award]"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                    <input type="number" name="academics[${index}][year]" min="1900" max="2100"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+            </div>
+            <button type="button" class="remove-field mt-2 text-sm text-red-600 hover:text-red-800 transition">
+                <i class="fas fa-trash mr-1"></i>Remove
+            </button>
+        `;
+        
+        container.appendChild(div);
+    });
+
+    // Work Experience dynamic fields
+    document.getElementById('add-work-exp').addEventListener('click', function() {
+        const container = document.getElementById('work-exps-container');
+        const index = container.children.length;
+        
+        const div = document.createElement('div');
+        div.className = 'dynamic-field-group bg-gray-50 p-4 rounded-lg border border-gray-200';
+        div.dataset.index = index;
+        div.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Company *</label>
+                    <input type="text" name="work_exps[${index}][company]" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                    <input type="text" name="work_exps[${index}][title]" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    <input type="date" name="work_exps[${index}][start_date]"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    <input type="date" name="work_exps[${index}][end_date]"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Responsibilities</label>
+                    <textarea name="work_exps[${index}][responsibilities]" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></textarea>
+                </div>
+            </div>
+            <button type="button" class="remove-field mt-2 text-sm text-red-600 hover:text-red-800 transition">
+                <i class="fas fa-trash mr-1"></i>Remove
+            </button>
+        `;
+        
+        container.appendChild(div);
+    });
+
+    // Remove field handler
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('remove-field')) {
+            e.target.closest('.dynamic-field-group').remove();
+        }
+    });
+</script>
+{% endblock %}

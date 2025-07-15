@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-6 space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">Repayment Management</h1>
+  </div>
+
+  <div class="flex justify-end mb-4">
+    <button onclick="openRepayModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+      + Add Repayment
+    </button>
+  </div>
+
+  <table class="min-w-full bg-white shadow rounded-lg">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="px-4 py-2">Client</th>
+        <th class="px-4 py-2">Financing Amount</th>
+        <th class="px-4 py-2">Paid So Far</th>
+        <th class="px-4 py-2">Outstanding</th>
+        <th class="px-4 py-2">Status</th>
+        <th class="px-4 py-2">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for fin in financings %}
+      <tr class="border-b hover:bg-gray-50">
+        <td class="px-4 py-2">{{ fin.client_name }}</td>
+        <td class="px-4 py-2">USh {{ '{:,.0f}'.format(fin.amount) }}</td>
+        <td class="px-4 py-2">USh {{ '{:,.0f}'.format(fin.paid_so_far or 0) }}</td>
+        <td class="px-4 py-2">USh {{ '{:,.0f}'.format((fin.expected_payback - (fin.paid_so_far or 0))) }}</td>
+        <td class="px-4 py-2 capitalize">{{ fin.status }}</td>
+        <td class="px-4 py-2">
+          {% if fin.status != 'paid' %}
+          <button onclick="openRepayModal('{{ fin.id }}','{{ fin.client_id }}','{{ fin.expected_payback - (fin.paid_so_far or 0) }}')" class="text-green-600 hover:underline">
+            Record Payment
+          </button>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal -->
+<div id="repayModal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+  <div class="bg-white rounded p-6 w-full max-w-md shadow-lg relative">
+    <button onclick="closeRepayModal()" class="absolute top-2 right-3 text-xl">×</button>
+    <h2 class="text-xl font-semibold mb-4">Record Repayment</h2>
+    <form method="POST" action="{{ url_for('client.record_repayment') }}" class="space-y-4">
+      <input type="hidden" id="financing_id" name="financing_id">
+      <input type="hidden" id="client_id" name="client_id">
+
+      <label class="text-sm">Outstanding Amount</label>
+      <input id="outstanding" class="w-full px-3 py-2 border rounded bg-gray-100" disabled>
+
+      <label class="text-sm">Paid Amount (UGX)</label>
+      <input type="number" name="paid_amount" min="0" step="0.01" required class="w-full px-3 py-2 border rounded">
+
+      <label class="text-sm">Payment Date</label>
+      <input type="date" name="paid_date" required class="w-full px-3 py-2 border rounded">
+
+      <label class="text-sm">Payment Method</label>
+      <select name="payment_method" required class="w-full px-3 py-2 border rounded">
+        <option value="bank_transfer">Bank Transfer</option>
+        <option value="mobile_money">Mobile Money</option>
+        <option value="cash">Cash</option>
+        <option value="online">Online Payment</option>
+      </select>
+
+      <label class="text-sm">Notes (optional)</label>
+      <textarea name="notes" rows="3" class="w-full px-3 py-2 border rounded"></textarea>
+
+      <div class="flex justify-end gap-3 pt-4">
+        <button type="button" onclick="closeRepayModal()" class="bg-gray-100 px-4 py-2 rounded">Cancel</button>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Submit Payment</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openRepayModal(finId, clientId, outstanding) {
+  document.getElementById('financing_id').value = finId;
+  document.getElementById('client_id').value = clientId;
+  document.getElementById('outstanding').value = outstanding;
+  document.getElementById('repayModal').classList.remove('hidden');
+  document.getElementById('repayModal').classList.add('flex');
+}
+function closeRepayModal() {
+  document.getElementById('repayModal').classList.add('hidden');
+  document.getElementById('repayModal').classList.remove('flex');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+
+{% block title %}Expenses Management{% endblock %}
+
+{% block content %}
+{% set category_colors = {
+  'Travel':'bg-blue-100 text-blue-800',
+  'Accommodation':'bg-green-100 text-green-800',
+  'Meals':'bg-yellow-100 text-yellow-800',
+  'Office Supplies':'bg-purple-100 text-purple-800',
+  'Utilities':'bg-indigo-100 text-indigo-800',
+  'Salaries':'bg-red-100 text-red-800',
+  'Marketing':'bg-pink-100 text-pink-800',
+  'Miscellaneous':'bg-gray-100 text-gray-800'
+} %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+  <!-- Dashboard Utilization Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    {# Total Capital #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Capital</p>
+          <p class="text-2xl font-semibold text-gray-900">${{ '{:,.2f}'.format(capital.totalCapital) }}</p>
+        </div>
+        <div class="h-12 w-12 bg-blue-50 rounded-lg flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m4-4H8"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    {# Available Capital #}
+    {% set is_overspent = capital.availableCapital < 0 %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Available Capital</p>
+          <p class="text-2xl font-semibold {{ 'text-red-600' if is_overspent else 'text-green-600' }}">
+            ${{ '{:,.2f}'.format(capital.availableCapital) }}
+          </p>
+        </div>
+        <div class="h-12 w-12 rounded-lg flex items-center justify-center {{ 'bg-red-50' if is_overspent else 'bg-green-50' }}">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 {{ 'text-red-600' if is_overspent else 'text-green-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="{{ 'M18 6L6 18M6 6l12 12' if is_overspent else 'M12 8v8m4-4H8' }}"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    {# Total Expenses #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Expenses</p>
+          <p class="text-2xl font-semibold text-gray-900">${{ '{:,.2f}'.format(capital.totalExpenses) }}</p>
+        </div>
+        <div class="h-12 w-12 bg-orange-50 rounded-lg flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    {# Utilization #}
+    {% set utilization = (capital.totalExpenses / capital.totalCapital * 100) if capital.totalCapital else 0 %}
+    {% set util_clamped = utilization if utilization < 100 else 100 %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Utilization</p>
+          <p class="text-2xl font-semibold {{ 'text-red-600' if utilization > 90 else 'text-gray-900' }}">
+            {{ '%.1f'|format(utilization) }}%
+          </p>
+        </div>
+        <div class="h-12 w-12 rounded-lg flex items-center justify-center {{ 'bg-red-50' if utilization > 90 else 'bg-purple-50' }}">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 {{ 'text-red-600' if utilization > 90 else 'text-purple-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12h18"/>
+          </svg>
+        </div>
+      </div>
+      <div class="mt-4 w-full bg-gray-200 rounded-full h-2">
+        <div class="h-2 rounded-full transition-all duration-300 {{ 'bg-red-500' if utilization > 90 else 'bg-purple-500' }}" style="width: {{ util_clamped }}%;"></div>
+      </div>
+    </div>
+  </div>
+
+  {# Add Expense Button #}
+  <div class="text-right">
+    <button id="openAddExpenseModal" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg inline-flex items-center space-x-2 shadow-sm hover:shadow-md transition-all duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      <span>Add Expense</span>
+    </button>
+  </div>
+
+  {# Filter / Search / Sort #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+      <h2 class="text-xl font-semibold text-gray-900">Expense History</h2>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
+        <div class="relative">
+          <input id="searchInput" type="text" placeholder="Search…" class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"/>
+          <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+        <select id="categoryFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200">
+          <option value="All">All Categories</option>
+          {% for cat in categories %}
+          <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+        <select id="sortSelect" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200">
+          <option value="date-desc">Date ↓</option>
+          <option value="date-asc">Date ↑</option>
+          <option value="amount-desc">Amt ↓</option>
+          <option value="amount-asc">Amt ↑</option>
+          <option value="description-asc">Desc A-Z</option>
+          <option value="description-desc">Desc Z-A</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  {# Expenses Table #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+    <table id="expensesTable" class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Voucher</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payee</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="expensesTbody" class="bg-white divide-y divide-gray-200">
+        {% for exp in expenses %}
+        <tr data-description="{{ exp.description|lower }}"
+            data-payee="{{ exp.payee|lower }}"
+            data-voucher="{{ exp.voucherNumber|lower }}"
+            data-category="{{ exp.category }}"
+            class="hover:bg-gray-50 transition-colors duration-150">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6h6v6m-6-8h6"/>
+              </svg>
+              <span class="text-sm font-mono text-gray-900">{{ exp.voucherNumber }}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2v-5H3v5a2 2 0 002 2z"/>
+              </svg>
+              <span class="text-sm text-gray-900">{{ exp.date }}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="text-sm text-gray-900 max-w-xs truncate" title="{{ exp.description }}">{{ exp.description }}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ category_colors.get(exp.category, 'bg-gray-100 text-gray-800') }}">
+              {{ exp.category }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.645 6.879 1.804"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span class="text-sm text-gray-900">{{ exp.payee }}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m4-4H8"/>
+              </svg>
+              <span class="text-sm font-semibold text-gray-900">${{ '{:,.2f}'.format(exp.amount) }}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <button class="text-blue-600 hover:text-blue-900 mr-4 viewVoucherBtn" data-expense="{{ loop.index0 }}">
+              View
+            </button>
+            <button class="text-gray-600 hover:text-gray-900 printVoucherBtn" data-expense="{{ loop.index0 }}">
+              Print
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# Add Expense Modal (hidden by default) #}
+<div id="addExpenseModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-auto">
+  <div class="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-semibold text-gray-900">Add New Expense</h2>
+        <button id="closeAddExpenseModal" class="text-gray-500 hover:text-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <form id="expenseForm" method="POST" action="{{ url_for('expense.add_expense') }}" class="space-y-4">
+        {{ csrf_token() }}
+        <div>
+          <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+          <input id="date" name="date" type="date" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"/>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <input name="description" type="text" placeholder="Expense description" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"/>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+          <input name="amount" type="number" step="0.01" placeholder="0.00" min="0.01" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"/>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <select name="category" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200">
+            {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Payee</label>
+          <input name="payee" type="text" placeholder="Payee name" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"/>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Approved By</label>
+          <input name="approved_by" type="text" placeholder="Approver name" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"/>
+        </div>
+        <div class="flex justify-end space-x-4 pt-4">
+          <button type="button" id="closeAddExpenseModal" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">Add Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Voucher Modal #}
+<div id="voucherModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-auto">
+  <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8 print:p-0 print:shadow-none print:border-0 print:max-w-full print:h-auto">
+    <div class="hidden print:flex print:justify-between print:items-center print:mb-6 print:px-8 print:pt-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Expense Voucher</h1>
+        <p class="text-sm text-gray-600">Printed on {{ now}}</p>
+      </div>
+      <img src="{{ url_for('static', filename='n.png') }}" alt="Company Logo" class="h-12"/>
+    </div>
+    
+    <div class="flex justify-between items-center mb-6 print:hidden">
+      <h2 class="text-2xl font-semibold text-gray-900">Expense Voucher</h2>
+      <div class="flex space-x-4">
+        <button id="printVoucherBtn" class="text-gray-600 hover:text-gray-900 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+          </svg>
+          Print
+        </button>
+        <button id="closeVoucherModal" class="text-gray-500 hover:text-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <div id="voucherContent" class="prose max-w-none text-gray-900 print:px-8 print:pb-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">Voucher Details</h3>
+          <div class="mt-4 space-y-2">
+            <p><strong>Voucher #:</strong> <span id="voucherNumber" class="font-mono"></span></p>
+            <p><strong>Date:</strong> <span id="voucherDate"></span></p>
+            <p><strong>Category:</strong> <span id="voucherCategory"></span></p>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">Payment Details</h3>
+          <div class="mt-4 space-y-2">
+            <p><strong>Payee:</strong> <span id="voucherPayee"></span></p>
+            <p><strong>Amount:</strong> $<span id="voucherAmount" class="font-semibold"></span></p>
+            <p><strong>Approved By:</strong> <span id="voucherApprovedBy"></span></p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mb-8">
+        <h3 class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">Description</h3>
+        <p id="voucherDescription" class="mt-4"></p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 print:mt-8">
+        <div>
+          <p class="font-medium text-gray-900 mb-2">Payee Signature:</p>
+          <div class="border-b border-gray-400 w-full h-12"></div>
+        </div>
+        <div>
+          <p class="font-medium text-gray-900 mb-2">Approver Signature:</p>
+          <div class="border-b border-gray-400 w-full h-12"></div>
+        </div>
+      </div>
+      
+      <div class="mt-8 text-center text-sm text-gray-500 print:mt-4">
+        <p>This is an official expense voucher. Please retain for your records.</p>
+        <p class="mt-1">Voucher ID: <span id="voucherIdDisplay" class="font-mono"></span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Modal toggles ---
+  const addModal = document.getElementById('addExpenseModal'),
+        openAdd = document.getElementById('openAddExpenseModal'),
+        closeAdd = document.getElementById('closeAddExpenseModal'),
+        voucherModal = document.getElementById('voucherModal'),
+        closeVoucher = document.getElementById('closeVoucherModal'),
+        printVoucherBtn = document.getElementById('printVoucherBtn'),
+        viewVoucherBtns = document.querySelectorAll('.viewVoucherBtn'),
+        printVoucherBtns = document.querySelectorAll('.printVoucherBtn'),
+        expenses = {{ expenses|tojson }};
+
+  function showModal(modal){ 
+    modal.classList.remove('hidden'); 
+    document.body.style.overflow='hidden'; 
+    document.documentElement.style.paddingRight = window.innerWidth - document.documentElement.clientWidth + 'px';
+  }
+  
+  function hideModal(modal){ 
+    modal.classList.add('hidden'); 
+    document.body.style.overflow='auto'; 
+    document.documentElement.style.paddingRight = '';
+  }
+
+  openAdd.addEventListener('click', ()=>showModal(addModal));
+  closeAdd.addEventListener('click', ()=>hideModal(addModal));
+
+  function populateVoucherModal(idx) {
+    const e = expenses[idx];
+    document.getElementById('voucherNumber').textContent = e.voucherNumber;
+    document.getElementById('voucherDate').textContent = e.date;
+    document.getElementById('voucherDescription').textContent = e.description;
+    document.getElementById('voucherCategory').textContent = e.category;
+    document.getElementById('voucherPayee').textContent = e.payee;
+    document.getElementById('voucherAmount').textContent = e.amount.toFixed(2);
+    document.getElementById('voucherApprovedBy').textContent = e.approvedBy;
+    document.getElementById('voucherIdDisplay').textContent = e.voucherNumber + '-' + e.date.replace(/-/g, '');
+  }
+
+  viewVoucherBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = +btn.dataset.expense;
+      populateVoucherModal(idx);
+      showModal(voucherModal);
+    });
+  });
+
+  printVoucherBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = +btn.dataset.expense;
+      populateVoucherModal(idx);
+      showModal(voucherModal);
+      setTimeout(() => {
+        printVoucherBtn.click();
+      }, 300);
+    });
+  });
+
+  closeVoucher.addEventListener('click', ()=>hideModal(voucherModal));
+  
+  printVoucherBtn.addEventListener('click', ()=>{
+    window.print();
+  });
+
+  // --- Filter & Sort ---
+  const searchInput = document.getElementById('searchInput'),
+        categoryFilter = document.getElementById('categoryFilter'),
+        sortSelect = document.getElementById('sortSelect'),
+        tbody = document.getElementById('expensesTbody');
+
+  function filterSort(){
+    let trs = Array.from(tbody.querySelectorAll('tr'));
+    const s = searchInput.value.toLowerCase(),
+          cat = categoryFilter.value,
+          sort = sortSelect.value;
+
+    // filter
+    trs = trs.filter(r=>{
+      const d=r.dataset;
+      return (d.description.includes(s)||d.payee.includes(s)||d.voucher.includes(s))
+           && (cat==='All'||d.category===cat);
+    });
+    
+    // sort
+    trs.sort((a,b)=>{
+      const [field,order] = sort.split('-'),
+            va = field==='amount'
+                ? parseFloat(a.children[5].textContent.replace(/[^0-9.-]/g,''))
+                : field==='date'
+                ? new Date(a.children[1].textContent)
+                : a.children[field==='description'?2:0].textContent.toLowerCase(),
+            vb = field==='amount'
+                ? parseFloat(b.children[5].textContent.replace(/[^0-9.-]/g,''))
+                : field==='date'
+                ? new Date(b.children[1].textContent)
+                : b.children[field==='description'?2:0].textContent.toLowerCase();
+      return order==='asc'? va>vb?1:-1 : va<vb?1:-1;
+    });
+    
+    tbody.innerHTML = '';
+    trs.forEach(r=>tbody.appendChild(r));
+  }
+  
+  [searchInput,categoryFilter,sortSelect].forEach(el=>el.addEventListener('input',filterSort));
+  filterSort();
+
+  // Form validation
+  const expenseForm = document.getElementById('expenseForm');
+  if (expenseForm) {
+    expenseForm.addEventListener('submit', function(e) {
+      const amount = this.querySelector('input[name="amount"]');
+      if (parseFloat(amount.value) <= 0) {
+        e.preventDefault();
+        amount.focus();
+        alert('Amount must be greater than 0');
+      }
+    });
+  }
+</script>
+
+<style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #voucherModal, #voucherModal * {
+      visibility: visible;
+    }
+    #voucherModal {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: auto;
+      margin: 0;
+      padding: 0;
+    }
+    #closeVoucherModal, #printVoucherBtn {
+      display: none !important;
+    }
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Julam Financial Services{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='n.png') }}">
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet" />
+  {% block extra_css %}{% endblock %}
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f4f7fe;
+    }
+    .sidebar {
+      backdrop-filter: blur(18px);
+      background: linear-gradient(145deg, #0B1437cc, #1c2541cc);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .sidebar a {
+      transition: all 0.3s ease;
+    }
+    .sidebar a:hover {
+      background: linear-gradient(to right, #2563eb, #9333ea);
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);
+    }
+    .sidebar .active {
+      background: linear-gradient(to right, #3b82f6, #6366f1);
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+    }
+    .brand {
+      font-family: 'Playfair Display', serif;
+    }
+    .glass {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.7);
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-inter">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 sidebar text-white flex flex-col justify-between">
+      <div>
+        <!-- Logo and Brand -->
+        <div class="p-6 flex items-center space-x-3">
+          <img src="{{ url_for('static', filename='n.png') }}" alt="Logo" class="w-10 h-10" />
+          <div>
+            <h1 class="brand font-bold text-lg tracking-wide">Julam Financial</h1>
+            <p class="text-xs text-gray-300">Services Ltd</p>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="mt-4 space-y-1">
+          {% set nav_items = [
+            ('auth.dashboard', 'fa-house', 'Dashboard'),
+            ('client.clients_list', 'fa-users', 'clients'),
+            ('client.documents_list', 'fa-file-alt', 'Documents'),
+            ('partners.list_partners', 'fa-handshake', 'Captital Management'),
+            ('client.view_financing', 'fa-receipt', 'Repayments'),
+            ('expense.expense_dashboard', 'fa-plane', 'Expense'),
+            ('#', 'fa-chart-bar', 'Reports'),
+            ('#', 'fa-cog', 'Settings')
+          ] %}
+          {% for endpoint, icon, label in nav_items %}
+            <a href="{{ url_for(endpoint) if endpoint != '#' else '#' }}"
+              class="flex items-center space-x-3 p-3 mx-4 rounded-lg {% if request.endpoint == endpoint %}active{% endif %}">
+              <i class="fa-solid {{ icon }}"></i>
+              <span>{{ label }}</span>
+            </a>
+          {% endfor %}
+        </nav>
+      </div>
+
+      <!-- User Section -->
+      <div class="p-4 border-t border-gray-700">
+        <div class="flex items-center space-x-3 mb-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+            <i class="fa-solid fa-user text-white"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold">{{ user.name }}</p>
+            <p class="text-xs text-blue-200">{{ user.email or "user@email.com" }}</p>
+          </div>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-red-600 transition">
+          <i class="fa-solid fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <!-- Topbar -->
+      <header class="flex items-center justify-between bg-white p-4 shadow-sm sticky top-0 z-10">
+        <form class="w-1/3">
+          <div class="relative">
+            <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="text" placeholder="Search clients, loans, or documents..." class="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm bg-white shadow-sm" />
+          </div>
+        </form>
+        <div class="flex items-center space-x-4">
+          <div class="relative">
+            <i class="fa-regular fa-bell text-gray-600 text-xl"></i>
+            <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5">3</span>
+          </div>
+          <div class="w-9 h-9 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+            <i class="fa-solid fa-user text-white"></i>
+          </div>
+          <div>
+            <p class="text-base font-semibold text-white tracking-wide drop-shadow-sm">
+                {{ user.name }}
+            </p>
+            <p class="text-xs font-medium tracking-wide text-blue-100 italic">
+                {{ user.email or user.email }}
+            </p>
+        </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main class="flex-1 overflow-y-auto p-6">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast" class="hidden fixed top-5 right-5 p-4 rounded-lg shadow-lg z-50 text-white font-medium text-sm"></div>
+  {% block extra_js %}{% endblock %}
+<script>
+  // In your form submission handler
+async function submitClientForm() {
+    const formData = new FormData(document.getElementById('client-form'));
+    
+    try {
+        const response = await fetch('/submit', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Store values in localStorage
+            localStorage.setItem('order_id', data.order_id);
+            localStorage.setItem('order_ref', data.order_ref);
+            localStorage.setItem('client_id', data.client_id);
+            
+            // Redirect to payment page
+            window.location.href = data.redirect_url;
+        } else {
+            // Handle error
+            alert('Submission failed');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+</script>
+  <script>
+    // Flash message handler
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          const toast = document.getElementById('toast');
+          toast.textContent = '{{ message }}';
+          toast.classList.remove('hidden');
+          toast.classList.add('bg-{{ category }}-500');
+          setTimeout(() => {
+            toast.classList.add('hidden');
+          }, 4000);
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </script>
+</body>
+</html>

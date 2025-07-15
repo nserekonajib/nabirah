@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Repayment Management{% endblock %}
+
+{% block content %}
+<div class="px-6 py-8 space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900">Repayment Management</h1>
+        <button onclick="openModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            + Add Repayment
+        </button>
+    </div>
+
+    <!-- Repayment Table -->
+    <div class="bg-white shadow rounded-lg p-4 overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-600">
+            <thead class="text-xs text-gray-700 uppercase border-b">
+                <tr>
+                    <th class="px-4 py-2">Client</th>
+                    <th class="px-4 py-2">Amount Paid</th>
+                    <th class="px-4 py-2">Paid Date</th>
+                    <th class="px-4 py-2">Method</th>
+                    <th class="px-4 py-2">Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for repayment in repayments %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-2">{{ repayment.client_name }}</td>
+                        <td class="px-4 py-2">UGX {{ '{:,.0f}'.format(repayment.amount_paid) }}</td>
+                        <td class="px-4 py-2">{{ repayment.paid_date }}</td>
+                        <td class="px-4 py-2">{{ repayment.payment_method|capitalize }}</td>
+                        <td class="px-4 py-2">{{ repayment.notes or '-' }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-4 text-center text-gray-400">No repayments recorded.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Form -->
+<div id="repaymentModal" class="fixed inset-0 bg-black bg-opacity-30 z-50 hidden items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
+        <h2 class="text-lg font-semibold mb-4">Record Repayment</h2>
+
+        <form method="POST" action="{{ url_for('client.record_repayment') }}" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div>
+                <label for="client_id" class="block text-sm font-medium text-gray-700">Select Client</label>
+                <select id="client_id" name="client_id" required onchange="filterFinancingOptions()" class="w-full mt-1 border border-gray-300 rounded px-3 py-2">
+                    <option value="">-- Select Client --</option>
+                    {% for client in clients %}
+                        <option value="{{ client.id }}">{{ client.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="financing_id" class="block text-sm font-medium text-gray-700">Select Financing</label>
+                <select id="financing_id" name="financing_id" required class="w-full mt-1 border border-gray-300 rounded px-3 py-2">
+                    <option value="">-- Select Financing --</option>
+                    {% for fin in financings %}
+                        <option value="{{ fin.id }}" data-client="{{ fin.client_id }}">
+                            UGX {{ '{:,.0f}'.format(fin.amount) }} | Paid: UGX {{ '{:,.0f}'.format(fin.paid_so_far or 0) }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="paid_amount" class="block text-sm font-medium text-gray-700">Amount Paid</label>
+                <input type="number" min="1" step="1" name="paid_amount" id="paid_amount" required
+                       class="w-full mt-1 border border-gray-300 rounded px-3 py-2" />
+            </div>
+
+            <div>
+                <label for="paid_date" class="block text-sm font-medium text-gray-700">Paid Date</label>
+                <input type="date" name="paid_date" id="paid_date" required
+                       value="{{ current_date }}" class="w-full mt-1 border border-gray-300 rounded px-3 py-2" />
+            </div>
+
+            <div>
+                <label for="payment_method" class="block text-sm font-medium text-gray-700">Payment Method</label>
+                <select name="payment_method" id="payment_method" required class="w-full mt-1 border border-gray-300 rounded px-3 py-2">
+                    <option value="cash">Cash</option>
+                    <option value="mobile_money">Mobile Money</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="online">Online</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+                <textarea name="notes" id="notes" rows="2"
+                          class="w-full mt-1 border border-gray-300 rounded px-3 py-2" placeholder="Optional..."></textarea>
+            </div>
+
+            <div class="flex justify-end gap-4 pt-4">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded text-gray-700">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Submit</button>
+            </div>
+        </form>
+
+        <!-- Close button -->
+        <button onclick="closeModal()" class="absolute top-3 right-4 text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+    </div>
+</div>
+
+<script>
+function openModal() {
+    document.getElementById('repaymentModal').classList.remove('hidden');
+    document.getElementById('repaymentModal').classList.add('flex');
+}
+
+function closeModal() {
+    document.getElementById('repaymentModal').classList.add('hidden');
+    document.getElementById('repaymentModal').classList.remove('flex');
+}
+
+function filterFinancingOptions() {
+    const clientId = document.getElementById("client_id").value;
+    const financingSelect = document.getElementById("financing_id");
+
+    for (let option of financingSelect.options) {
+        if (option.value === "") continue;
+        option.hidden = option.getAttribute("data-client") !== clientId;
+    }
+
+    financingSelect.value = "";
+}
+</script>
+{% endblock %}

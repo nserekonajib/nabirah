@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<h1>Clients</h1>
+<button id="btn-add-client">Add Client</button>
+
+<!-- Client table -->
+<table>
+  <thead>
+    <tr>
+      <th>Name</th><th>Phone</th><th>Status</th><th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for c in clients %}
+    <tr>
+      <td>{{ c.full_name }}</td>
+      <td>{{ c.identification.primary_phone }}</td>
+      <td>{{ c.status }}</td>
+      <td><a href="{{ url_for('view_client', client_id=c.id) }}">View</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<!-- Add client modal -->
+<div id="modal" style="display:none;">
+  <form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="step" id="step1">
+      <h3>Step 1: Personal Info</h3>
+      {{ form.full_name.label }} {{ form.full_name() }}<br>
+      {{ form.date_of_birth.label }} {{ form.date_of_birth() }}<br>
+      <!-- add age calculation on client side -->
+      <!-- likewise other personal info fields -->
+    </div>
+    <div class="step" id="step2" style="display:none;">
+      <h3>Step 2: Identification</h3>
+      {{ form.identification.nin_number.label }} {{ form.identification.nin_number() }}<br>
+      {{ form.identification.photo.label }} {{ form.identification.photo() }}<br>
+      <!-- and so on -->
+    </div>
+    <!-- similarly steps 3–7 -->
+    <button type="button" id="prev">Back</button>
+    <button type="button" id="next">Next</button>
+    <button type="submit" id="finish" style="display:none;">Finish</button>
+  </form>
+</div>
+
+<script>
+let current=1, total=7;
+$('#btn-add-client').click(()=>$('#modal').show());
+$('#next').click(()=>{
+  $('#step'+current).hide();
+  current++;
+  $('#step'+current).show();
+  if(current===total){ $('#next').hide(); $('#finish').show(); }
+});
+$('#prev').click(()=>{
+  $('#step'+current).hide();
+  current--;
+  $('#step'+current).show();
+  $('#next').show(); $('#finish').hide();
+});
+$( '#form-date_of_birth' ).change(function(){
+  const dob = new Date(this.value);
+  const age = Math.floor((Date.now()-dob)/31557600000);
+  // display age
+});
+</script>
+{% endblock %}

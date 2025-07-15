@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-6 space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <h1 class="text-2xl font-bold text-gray-800">Partner Management</h1>
+    <div class="flex gap-3">
+      <button onclick="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        + Add Partner
+      </button>
+      <button onclick="openCapitalModal(null)" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+        + Add Capital
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+      <div>
+        <p class="text-sm text-gray-600">Total Partners</p>
+        <p class="text-2xl font-bold text-gray-900">{{ partners | length }}</p>
+      </div>
+      <div class="text-blue-500 bg-blue-100 p-2 rounded">📄</div>
+    </div>
+    <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+      <div>
+        <p class="text-sm text-gray-600">Individual Investors</p>
+        <p class="text-2xl font-bold text-gray-900">{{ individual_investors_count }}</p>
+      </div>
+      <div class="text-green-500 bg-green-100 p-2 rounded">👤</div>
+    </div>
+    <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+      <div>
+        <p class="text-sm text-gray-600">Total Capital Invested</p>
+        <p class="text-2xl font-bold text-gray-900">USh {{ '{:,.0f}'.format(total_capital_invested) }}</p>
+      </div>
+      <div class="text-purple-500 bg-purple-100 p-2 rounded">🏢</div>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+      <div>
+        <p class="text-sm text-gray-600">available_capital</p>
+        <p class="text-2xl font-bold text-gray-900">USh {{ '{:,.0f}'.format(total_available_capital) }}</p>
+      </div>
+      <div class="text-purple-500 bg-purple-100 p-2 rounded">🏢</div>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+      <div>
+        <p class="text-sm text-gray-600">total_expected_payback</p>
+        <p class="text-2xl font-bold text-gray-900">USh {{ '{:,.0f}'.format(total_expected_payback) }}</p>
+      </div>
+      <div class="text-purple-500 bg-purple-100 p-2 rounded">🏢</div>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+      <div>
+        <p class="text-sm text-gray-600">total_repaid</p>
+        <p class="text-2xl font-bold text-gray-900">USh {{ '{:,.0f}'.format(total_repaid) }}</p>
+      </div>
+      <div class="text-purple-500 bg-purple-100 p-2 rounded">🏢</div>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+      <div>
+        <p class="text-sm text-gray-600">total_registration_charge</p>
+        <p class="text-2xl font-bold text-gray-900">USh {{ '{:,.0f}'.format(total_registration_charge) }}</p>
+      </div>
+      <div class="text-purple-500 bg-purple-100 p-2 rounded">🏢</div>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+      <div>
+        <p class="text-sm text-gray-600">total_clients</p>
+        <p class="text-2xl font-bold text-gray-900"> {{ '{:,.0f}'.format(total_clients) }}</p>
+      </div>
+      <div class="text-purple-500 bg-purple-100 p-2 rounded">🏢</div>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+      <div>
+        <p class="text-sm text-gray-600">Expected Returns</p>
+        <p class="text-2xl font-bold text-gray-900">USh {{ '{:,.0f}'.format(expected_returns) }}</p>
+      </div>
+      <div class="text-yellow-500 bg-yellow-100 p-2 rounded">💳</div>
+    </div>
+  </div>
+
+  
+
+  <!-- Utilization -->
+  <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+    <p class="text-sm text-gray-600">Portfolio Utilization</p>
+    <p class="text-xl font-bold text-blue-700">{{ portfolio_utilization }}%</p>
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto bg-white shadow rounded-lg mt-6">
+    <table class="w-full table-auto text-sm">
+      <thead class="bg-gray-100 text-gray-700">
+        <tr>
+          <th class="px-4 py-2 text-left">Partner Name</th>
+          <th class="px-4 py-2 text-left">Email</th>
+          <th class="px-4 py-2 text-left">Phone</th>
+          <th class="px-4 py-2 text-left">Capital</th>
+          <th class="px-4 py-2 text-left">Available</th>
+          <th class="px-4 py-2 text-left">Returns</th>
+          <th class="px-4 py-2 text-left">Expected</th>
+          <th class="px-4 py-2 text-left">ROI</th>
+          <th class="px-4 py-2 text-left">Rank</th>
+          <th class="px-4 py-2 text-left">Join Date</th>
+          <th class="px-4 py-2 text-left">Status</th>
+          <th class="px-4 py-2 text-left">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in partners %}
+        <tr class="border-b hover:bg-gray-50">
+          <td class="px-4 py-2">{{ p.partner_name }}</td>
+          <td class="px-4 py-2">{{ p.email }}</td>
+          <td class="px-4 py-2">{{ p.phone_number }}</td>
+          <td class="px-4 py-2">USh {{ '{:,.0f}'.format(p.initial_capital) }}</td>
+          <td class="px-4 py-2">USh {{ '{:,.0f}'.format(p.available_capital) }}</td>
+          <td class="px-4 py-2">USh {{ '{:,.0f}'.format(p.total_returns) }}</td>
+          <td class="px-4 py-2">USh {{ '{:,.0f}'.format(p.expected_returns) }}</td>
+          <td class="px-4 py-2">{{ p.capital_percentage|round(1) }}%</td>
+          <td class="px-4 py-2 font-semibold text-blue-700">{{ p.performance_rank }}</td>
+          <td class="px-4 py-2">{{ p.created_at }}</td>
+          <td class="px-4 py-2">
+            {% if p.is_active %}
+            <span class="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded">Active</span>
+            {% else %}
+            <span class="bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2 space-y-1">
+            <button class="text-blue-600 hover:underline">👁️</button>
+            <button class="text-green-600 hover:underline">✏️</button>
+            <button class="text-indigo-600 hover:underline" onclick="openCapitalModal('{{ p.id }}')">➕</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add Partner Modal -->
+  <div id="partnerModal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded p-6 w-full max-w-lg shadow-lg relative">
+      <button onclick="closeModal()" class="absolute top-2 right-3 text-xl text-gray-500">×</button>
+      <h2 class="text-xl font-semibold mb-4">Add New Partner</h2>
+      <form method="POST" action="{{ url_for('partners.add_partner') }}" class="space-y-4">
+        <input type="text" name="partner_name" placeholder="Partner Name" required class="w-full px-3 py-2 border rounded">
+        <input type="email" name="email" placeholder="Email" required class="w-full px-3 py-2 border rounded">
+        <input type="text" name="phone_number" placeholder="Phone Number" required class="w-full px-3 py-2 border rounded">
+        <input type="number" name="initial_capital" placeholder="Initial Capital" min="0" required class="w-full px-3 py-2 border rounded">
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" onclick="closeModal()" class="bg-gray-100 px-4 py-2 rounded">Cancel</button>
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Capital Modal -->
+ 
+<div id="capitalModal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+  <div class="bg-white rounded p-6 w-full max-w-md shadow-lg relative">
+    <button onclick="closeCapitalModal()" class="absolute top-2 right-3 text-xl text-gray-500">×</button>
+    <h2 class="text-xl font-semibold mb-4">Add Capital to Partner</h2>
+    <form method="POST" action="{{ url_for('partners.add_capital') }}" class="space-y-4">
+      <label class="block text-sm font-medium text-gray-700">Select Partner</label>
+      <select name="partner_id" required class="w-full px-3 py-2 border rounded">
+        <option value="" disabled selected>-- Choose Partner --</option>
+        {% for p in partners %}
+        <option value="{{ p.id }}">{{ p.partner_name }} (Available: USh {{ '{:,.0f}'.format(p.available_capital) }})</option>
+        {% endfor %}
+      </select>
+
+      <input type="number" name="additional_capital" placeholder="Amount to Add" min="0" required class="w-full px-3 py-2 border rounded">
+
+      <div class="flex justify-end gap-3 pt-4">
+        <button type="button" onclick="closeCapitalModal()" class="bg-gray-100 px-4 py-2 rounded">Cancel</button>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Capital</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Logic -->
+<script>
+  function openModal() {
+    document.getElementById("partnerModal").classList.remove("hidden");
+    document.getElementById("partnerModal").classList.add("flex");
+  }
+  function closeModal() {
+    document.getElementById("partnerModal").classList.add("hidden");
+    document.getElementById("partnerModal").classList.remove("flex");
+  }
+
+  function openCapitalModal(partnerId) {
+    document.getElementById("capital_partner_id").value = partnerId || '';
+    document.getElementById("capitalModal").classList.remove("hidden");
+    document.getElementById("capitalModal").classList.add("flex");
+  }
+  function closeCapitalModal() {
+    document.getElementById("capitalModal").classList.add("hidden");
+    document.getElementById("capitalModal").classList.remove("flex");
+  }
+</script>
+
+<script>
+  function openCapitalModal() {
+    document.getElementById("capitalModal").classList.remove("hidden");
+    document.getElementById("capitalModal").classList.add("flex");
+  }
+
+  function closeCapitalModal() {
+    document.getElementById("capitalModal").classList.add("hidden");
+    document.getElementById("capitalModal").classList.remove("flex");
+  }
+</script>
+
+{% endblock %}
