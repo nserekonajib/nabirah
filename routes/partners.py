@@ -18,6 +18,11 @@ partners_bp = Blueprint('partners', __name__, url_prefix='/partners')
 @login_required
 def list_partners():
     user_data = request.args.get('user_data', None)
+    expenses_resp = supabase.table('expenses').select('*').order('created_at', desc=True).execute()
+    expenses_raw = expenses_resp.data or []
+
+    # Map expenses keys for template (ensure keys match Jinja template)
+    expenses = []
 
     try:
         # Get partners data
@@ -64,6 +69,25 @@ def list_partners():
         total_expected_returns = 0
         total_available_capital = 0
         
+        expenses_resp = supabase.table('expenses').select('*').order('created_at', desc=True).execute()
+        expenses_raw = expenses_resp.data or []
+
+        # Map expenses keys for template (ensure keys match Jinja template)
+        expenses = []
+        
+        for e in expenses_raw:
+            expenses.append({
+                'id': e.get('id'),
+                'date': e.get('date') or '',
+                'description': e.get('description') or '',
+                'amount': float(e.get('amount') or 0),
+                'category': e.get('category') or '',
+                'payee': e.get('payee') or '',
+                'approvedBy': e.get('approved_by') or '',
+                'voucherNumber': e.get('voucher_number') or '',
+                'createdAt': e.get('created_at') or ''
+            })
+        
 
         for p in raw_partners:
             
@@ -72,11 +96,13 @@ def list_partners():
             initial_capital = float(p.get("initial_capital") or 0)
             total_return = float(p.get("total_returns") or 0)
             available_capital = float(p.get("available_capital", initial_capital))
+            total_expenses = sum(e['amount'] for e in expenses)
+            net_available_capital = total_capital - total_expenses
 
             # Expected returns: business rule
             expected_returns = (initial_capital / 500_000) * 1_000_000 if initial_capital else 0
             total_expected_returns += expected_returns
-            total_available_capital += available_capital
+            total_available_capital = net_available_capital + total_registration_charge
             
            
 
